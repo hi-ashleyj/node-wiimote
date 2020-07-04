@@ -11,7 +11,7 @@ Allow passing in button_*/button_all for all button events
  - Throw an event object at the callbacks
 Allow passing names of events, actions of events, or all into off to remove all listeners of that type
 
-Add getting list of all events (hopefully not needed but could be passed through to users through GUI)
+ - Add getting list of all events (hopefully not needed but could be passed through to users through GUI)
 
 
 TODO FOR FUTURE VERSIONS:
