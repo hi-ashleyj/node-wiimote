@@ -1,3 +1,22 @@
+-- 0.2.0: THE 'EVENTS AND ERRORS UPDATE'
+
+Errors are now programatic and may not print to console.
+Critical errors now throw catchable errors.
+Non critical errors return error objects (and may catch exceptions themselves).
+Warnings print to console.
+
+Overhaul of the way events are stored and triggered, ready for 0.3 and 0.4
+
+Callbacks now get event objects, for dealing with multiple buttons on a single callback (but might still need to tell them apart)
+Support removing event listeners with the names of events or actions
+
+Add getting list of all events (hopefully not needed but could be passed through to users through GUI)
+
+Fixed bug where errors were thrown when wiimote disconnects. Aka I was using it to control a lighting rig then everything crashed and burned so I fixed it.
+
+Updated docs, changelong, todo, readme
+Updated node-hid and removed (now) unused colors
+
 -- 0.1.0: 'THE FIX EVERYTHING UPDATE'
 Created Git Repo! Yay!
 Added built in documentation that is more lengthy.

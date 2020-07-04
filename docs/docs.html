@@ -9,8 +9,8 @@
 				width: 60vw;
 				margin-left: 20vw;
 				padding-top: 10vh;
-				background: #222222;
-				color: white;
+				background: #eeeeee;
+				color: black;
 			}
 			
 			h1, h2, h3, h4, h5, h6 {
@@ -18,7 +18,7 @@
 			}
 			
 			.code {
-				background: #000000;
+				background: #ffffff;
 				border-radius: 3px;
 				font-family: monospace;
 				padding: 1rem;
@@ -87,9 +87,10 @@
 			&nbsp;&nbsp;<a href="#hd1_3">1.3 Add Listeners</a><br />
 			&nbsp;&nbsp;<a href="#hd1_4">1.4 Remove Listeners</a><br />
 			<a href="#hd2">2. Events</a><br />
-			&nbsp;&nbsp;<a href="#hd2_1">2.1 Buttons</a><br />
-			&nbsp;&nbsp;&nbsp;&nbsp;<a href="#hd2_1_1">2.1.1 Types</a><br />
-			&nbsp;&nbsp;&nbsp;&nbsp;<a href="#hd2_1_2">2.1.2 Actions</a><br />
+			&nbsp;&nbsp;<a href="#hd2_1">2.1 Behaviour</a><br />
+			&nbsp;&nbsp;<a href="#hd2_2">2.2 Buttons</a><br />
+			&nbsp;&nbsp;&nbsp;&nbsp;<a href="#hd2_2_1">2.1.1 Types</a><br />
+			&nbsp;&nbsp;&nbsp;&nbsp;<a href="#hd2_2_2">2.1.2 Actions</a><br />
 			<a href="#hd3">3. Feedback</a><br />
 			&nbsp;&nbsp;<a href="#hd3_1">3.1 Haptics</a><br />
 			&nbsp;&nbsp;<a href="#hd3_2">3.2 Lights</a><br />
@@ -135,7 +136,8 @@
 		<br />
 		<h3 id="hd1_4">1.4 Remove Listeners</h3>
 		<div class="code">
-			wii.<span class="dblue">off</span>(<span class="lblue">token</span>); <span class="comment">// Takes listener token and removes listener</span>
+			wii.<span class="dblue">off</span>(<span class="lblue">token</span>); <span class="comment">// Takes listener token and removes listener</span><br />
+			wii.<span class="dblue">off</span>(<span class="lblue">type</span>, <span class="lblue">action</span>)<span class="comment">// Removes listeners of matching types and actions. (new in 0.2.0)</span>
 		</div>
 		<br />
 		Sample uses: 
@@ -144,13 +146,34 @@
 		<div class="code">
 			wii.<span class="dblue">off</span>(pressBToken);<br />
 			wii.<span class="dblue">off</span>(relesBToken);<br />
-			wii.<span class="dblue">off</span>(relesHomeToken);<br />
+			wii.<span class="dblue">off</span>(<span class="green">"button_home"</span>, <span class="green">"released"</span>);<br />
 		</div>
 		<br />
 		<br />
 		<h2 id="hd2">2. Events</h2>
-		<h3 id="hd2_1">2.1 Buttons</h3>
-		<h4 id="hd2_1_1">2.1.1 Types</h3>
+		<h3 id="hd2_1">2.1 Behaviour</h3>
+		Each event has a "type" and an "action"<br />
+		The event type is used to target the button, sensor, or other devices the user can interface with.<br />
+		The event action is used to specify what the user does (press button, movement etc)<br />
+		<br />
+		Also available are the <span class="code-inline">all</span> and <span class="code-inline">*</span> keywords<br />
+		These may be used in place of types and/or actions as wildcards. ie:<br />
+		An event listener with <span class="code-inline">type: "button_a", action: "all"</span> will trigger for every action on the a button. <br />
+		An event listener with <span class="code-inline">type: "all", action: "pressed"</span> will trigger for a pressed event on any device. <br />
+		An event listener with <span class="code-inline">type: "all", action: "all"</span> will trigger for every device. <br />
+		<br />
+		<span class="comment">Use of "*" may change with regards to removing events. If you need to remove the event with no breakage in future versions, "all" should be used.</span><br />
+		<br />
+		The <span class="code-inline">wii.on()</span> function returns a WiiListenerToken that can be used to remove that event listener.<br />
+		That can be done by simply passing it into <span class="code-inline">wii.off(<span class="lblue">token</span>)</span><br />
+		You can also remove all events with specific types and actions by using <span class="code-inline">wii.off(<span class="lblue">type</span>, <span class="lblue">action</span>)</span><br />
+		<br />
+		Note that unlike specifying <span class="code-inline">all</span> or <span class="code-inline">*</span> with events, using <span class="code-inline">all</span> or <span class="code-inline">*</span> to remove events only removes events with the types/actions <span class="code-inline">all</span> or <span class="code-inline">*</span>, ie:<br />
+		Remove with <span class="code-inline">type: "all", action: "pressed"</span> will only remove events that match <span class="code-inline">type: "all", action: "pressed"</span>, and not other events with <span class="code-inline">action: "pressed"</span><br />
+		<br />
+		<span class="comment">Note that in future "*" may change to be a wildcard in removing events and not specific (as it is currently). For future compatibility with removing events, you should use "all"</span>
+		<h3 id="hd2_2">2.2 Buttons</h3>
+		<h4 id="hd2_2_1">2.2.1 Types</h3>
 		<b>
 		button_a<br />
 		button_b<br />
@@ -164,7 +187,7 @@
 		button_down<br />
 		button_home<br />
 		</b>
-		<h4 id="hd2_1_2">2.1.2 Actions</h3>
+		<h4 id="hd2_2_2">2.2.2 Actions</h3>
 		<b>pressed</b><br />
 		Triggered when a button is pressed down.<br />
 		<br />

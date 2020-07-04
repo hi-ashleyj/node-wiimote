@@ -348,7 +348,11 @@ var WiiController = function() {
 				throw "Token could not find an event listener";
 			}
 		} else if (typeof token == "string" && typeof action == "string") {
-			
+			for (var i = this.eventListeners.length - 1; i >= 0; i--) {
+				if (eventListeners[i].type == token && eventListeners[i].action == action) {
+					eventListeners.splice(i, 1);
+				}
+			}
 		} else {
 			throw "Provided argument is not a Token or EventType/Action pair.";
 		}
