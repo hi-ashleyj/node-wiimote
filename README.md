@@ -6,8 +6,8 @@ Detection and initialization based on wii-controller
 Thanks to Wiibrew for information on the communication standard.
 
 ## Latest Version
-UPDATE HIGHLY RECOMMENDED - REQUIRES MANUAL EDITING OF PACKAGE.JSON OR REINSTALL @LATEST
-UPDATE IS BACKWARDS COMPATIBLE  
+UPDATE HIGHLY RECOMMENDED - REQUIRES MANUAL EDITING OF PACKAGE.JSON OR REINSTALL @LATEST  
+UPDATE IS BACKWARDS COMPATIBLE TO VERSION 0.0.1
   
 Changes to 0.1.0: 'The Fix Everything Update'    
 Created Git Repo! Yay!  

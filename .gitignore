@@ -62,3 +62,7 @@ publish.bat
 
 # next.js build output
 .next
+
+# extra files that i dont need
+wii-backup-0.1.0.js
+wii-backup-some.js
