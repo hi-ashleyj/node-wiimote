@@ -9,7 +9,8 @@
 				width: 60vw;
 				margin-left: 20vw;
 				padding-top: 10vh;
-				
+				background: #222222;
+				color: white;
 			}
 			
 			h1, h2, h3, h4, h5, h6 {
@@ -17,7 +18,7 @@
 			}
 			
 			.code {
-				background: #cccccc;
+				background: #000000;
 				border-radius: 3px;
 				font-family: monospace;
 				padding: 1rem;
@@ -61,7 +62,15 @@
 			}
 			
 			.comment {
-				color: #555555;
+				color: #888888;
+			}
+
+			.code a {
+				color: #4444ff;
+			}
+
+			.code a:visited {
+				color: #4444ff;
 			}
 			
 		</style>
@@ -84,6 +93,7 @@
 			<a href="#hd3">3. Feedback</a><br />
 			&nbsp;&nbsp;<a href="#hd3_1">3.1 Haptics</a><br />
 			&nbsp;&nbsp;<a href="#hd3_2">3.2 Lights</a><br />
+			&nbsp;&nbsp;<a href="#hd3_3">3.2 List Events</a><br/>
 		</div>
 		<br />
 		<br />
@@ -176,6 +186,15 @@
 		</div>
 		<br />
 		Takes 4 boolean values and turns on the LEDs on the bottom of the Wiimote (left to right)
+		<br />
+		<h3 id="hd3_3">3.2 List Events</h3>
+		<div class="code">
+			wii.<span class="dblue">listEvents</span>(<span class="lblue">toConsole*</span>);
+		</div>
+		<br />
+		Returns an object with all events in <span class="code-inline">eventType: prettyName</span> format.<br />
+		If toConsole is true, prints the list to the console instead.<br />
+		If toConsole is not present, it is assumed to be false.
 		<br />
 		<br />
 		<br />

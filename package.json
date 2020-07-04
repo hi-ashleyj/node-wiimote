@@ -9,7 +9,6 @@
   "author": "Ashley J",
   "license": "MIT",
   "dependencies": {
-    "colors": "^1.3.3",
     "node-hid": "^0.7.6"
   },
   "repository": {

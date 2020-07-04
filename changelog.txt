@@ -1,6 +1,3 @@
--- 0.1.1
-Fixed issue with readme not displaying correctly.
-
 -- 0.1.0: 'THE FIX EVERYTHING UPDATE'
 Created Git Repo! Yay!
 Added built in documentation that is more lengthy.
