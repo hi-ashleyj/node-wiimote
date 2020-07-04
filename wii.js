@@ -309,7 +309,7 @@ var WiiController = function() {
 			return;
 		}
 		
-		var createdToken = new WiiListenerToken()
+		var createdToken = new WiiListenerToken();
 		this.eventListeners.push({
 			type: type,
 			action: action,
