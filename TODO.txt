@@ -1,21 +1,6 @@
-TODO FOR VERSION 0.2.0:
-
- - Make errors programatic and not print to console, non critical errors should continue code.
- - Critical errors should kill code, possibly caught.
- - Non-critical errors should catch themselves
- - Warnings should print to console.
-
- - Change the way events are stored and are decided, ready for 0.3 and 0.4
-
-Allow passing in button_*/button_all for all button events
- - Throw an event object at the callbacks
-Allow passing names of events, actions of events, or all into off to remove all listeners of that type
-
-Add getting list of all events (hopefully not needed but could be passed through to users through GUI)
-
-
 TODO FOR FUTURE VERSIONS:
 Planned for 0.3.0: 'The Listening Update'
+	Allow passing in button_*/button_all for all button events
 	Add other report types, and when incompatible report given possibly send back to known report	
 	Add dynamically knowing and switching between different report modes based on event listeners
 	

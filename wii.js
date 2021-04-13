@@ -138,10 +138,25 @@ var WiiController = function() {
 	
 	this.vibrating = false;
 	this.lightsState = 0;
+	this.exists = false;
 	
 	this.eventListeners = [];
 	
-	var u = this; 
+	var u = this;
+
+	this.sendData = function(data) {
+		if (this.exists) {
+			try {
+				this.hid.write(data);
+				return null;
+			} catch (err) {
+				this.exists = false;
+				return {error: "Something went wrong. The wiimote is probably disconnected.", code: "hid-write/oof"};
+			}
+		} else {
+			return false;
+		}
+	};
 	
 	// NOT MY CODE
 
@@ -261,9 +276,9 @@ var WiiController = function() {
 				
 				u.last = found; // Get ready for the next event
 			} else if (e[0] == 0x20) { // If the wiimote sends a status report (regardless if requested)
-				u.hid.write([0x12, 0x00, 0x30]); // Send a message to change the reporting mode to 0x30 (default)
 				// Debug Mode:
 				// console.log("Recieved Status Report:\n", e)
+				return u.sendData([0x12, 0x00, 0x30]); // Send a message to change the reporting mode to 0x30 (default)
 			} else {
 				console.log("I found a report that I have no idea what to do with");
 				console.log("We are working very hard to support all types of report, so please make sure you have the latest version. Current: " + version);
@@ -271,7 +286,7 @@ var WiiController = function() {
 				console.log(e);
 				console.log("Please send it in as a bug report on git, if there is already data that matches yours just comment on it please!");
 				console.log("Alternatively, use the Wiimote documentation on Wiibrew to figure out what is going on and submit that, or fix it and submit a pull request.");
-				u.hid.write([0x12, 0x00, 0x30]);
+				return u.sendData([0x12, 0x00, 0x30]);
 			}
 		});
 		this.exists = true;
@@ -309,7 +324,7 @@ var WiiController = function() {
 			return;
 		}
 		
-		var createdToken = new WiiListenerToken()
+		var createdToken = new WiiListenerToken();
 		this.eventListeners.push({
 			type: type,
 			action: action,
@@ -334,7 +349,11 @@ var WiiController = function() {
 				throw "Token could not find an event listener";
 			}
 		} else if (typeof token == "string" && typeof action == "string") {
-			
+			for (var i = this.eventListeners.length - 1; i >= 0; i--) {
+				if (eventListeners[i].type == token && eventListeners[i].action == action) {
+					eventListeners.splice(i, 1);
+				}
+			}
 		} else {
 			throw "Provided argument is not a Token or EventType/Action pair.";
 		}
@@ -365,7 +384,7 @@ var WiiController = function() {
 				total += 1;
 			}
 			// Send command
-			this.hid.write([0x11, total]);
+			return this.sendData([0x11, total]);
 		}
 	};
 
@@ -383,7 +402,7 @@ var WiiController = function() {
 			this.vibrating = value; // Remember current vibration
 			
 			// Send command
-			this.hid.write([0x11, total]);
+			return this.sendData([0x11, total]);
 			
 		} else if (typeof value == "number") {
 			if (value < 10) {
@@ -399,7 +418,7 @@ var WiiController = function() {
 			this.vibrating = true; // Remember current vibration
 			
 			// Send command
-			this.hid.write([0x11, total]);
+			return this.sendData([0x11, total]);
 			
 			// Then send second false command to show no more vibration
 			setTimeout(function() {u.vibrate(false);}, value);
