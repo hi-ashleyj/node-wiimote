@@ -3,6 +3,7 @@ Planned for 0.3.0: 'The Listening Update'
 	Allow passing in button_*/button_all for all button events
 	Add other report types, and when incompatible report given possibly send back to known report	
 	Add dynamically knowing and switching between different report modes based on event listeners
+	Add directly calling .off() on the correct handler token
 	
 Planned for 0.4.0: 'The Motion Update'
 	Add motion support
