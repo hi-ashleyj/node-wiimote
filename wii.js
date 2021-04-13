@@ -290,6 +290,9 @@ var WiiController = function() {
 			}
 		});
 		this.exists = true;
+		this.hid.on("error", () => {
+			console.log("The wii controller had an error.")
+		});
 	}
 	catch ( ex ) {
 		this.exists = false;
@@ -339,8 +342,8 @@ var WiiController = function() {
 		if (typeof token == "WiiListenerToken") {
 			var confiorm = false;
 			for (var i = 0; i < this.eventListeners.length; i++) {
-				if (token == eventListeners[i].token) {
-					eventListeners.splice(i, 1);
+				if (token == this.eventListeners[i].token) {
+					this.eventListeners.splice(i, 1);
 					confiorm = true;
 					return;
 				}
@@ -350,8 +353,8 @@ var WiiController = function() {
 			}
 		} else if (typeof token == "string" && typeof action == "string") {
 			for (var i = this.eventListeners.length - 1; i >= 0; i--) {
-				if (eventListeners[i].type == token && eventListeners[i].action == action) {
-					eventListeners.splice(i, 1);
+				if (this.eventListeners[i].type == token && this.eventListeners[i].action == action) {
+					this.eventListeners.splice(i, 1);
 				}
 			}
 		} else {
