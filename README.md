@@ -6,24 +6,12 @@ Detection and initialization based on wii-controller
 Thanks to Wiibrew for information on the communication standard.
 
 ## Latest Version
-UPDATE HIGHLY RECOMMENDED - REQUIRES MANUAL EDITING OF PACKAGE.JSON OR REINSTALL @LATEST
-UPDATE IS BACKWARDS COMPATIBLE  
+UPDATE HIGHLY RECOMMENDED - REQUIRES MANUAL EDITING OF PACKAGE.JSON OR REINSTALL @LATEST  
+UPDATE IS MOSTLY BACKWARDS COMPATIBLE.
   
-Changes to 0.1.0: 'The Fix Everything Update'    
-Created Git Repo! Yay!  
-Added built in documentation that is more lengthy.   
-Added new TODO.txt for todo notes and stuff  
-Added new message for unknown data reports  
+Changes to 0.2.0: 'The Events and Errors Update'    
   
-Changed vibrate() to accept a number, to allow vibration for a length of time.  
-vibrate() still accepts boolean values by design, and is backwards compatible  
-Changed temporary description to something a bit more permanent  
-Changed init behavior, now returns false if wiimote not found.  
-  
-Fixed missing require("colors")  
-Fixed possible bug where plugging in an expansion device could prevent further reporting  
-  
-Removed unused dependecies from package.json   
+Removed "colors" dependency as no longer required due
 
 ## Compatibility
 Requires Wiimote, connected with bluetooth.  
@@ -68,7 +56,7 @@ Takes 4 boolean values, and sets the lights (left to right)
 
 #### wii.vibrate(<(true/false)|duration>);
 Expects true or false, and enables or disables vibrate (rumble)  
-- NEW IN 0.1.0: Also allows a duration in milliseconds to be passed in.  
+Also allows a duration in milliseconds to be passed in.  
 Please use either one within your project unless neccesary. May have unexpected behaviour if two timeouts overlap.
 
 ## Contributing
