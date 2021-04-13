@@ -293,6 +293,7 @@ var WiiController = function() {
 	}
 	catch ( ex ) {
 		this.exists = false;
+		console.warn("Wii Controller could not be found");
 	}
 
 	this.on = function(type, action, callback) { // The most important function. Why? Because this makes sure nothing else gets shafted
