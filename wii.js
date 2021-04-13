@@ -339,7 +339,7 @@ var WiiController = function() {
 	};
 
 	this.off = function(token, action) {
-		if (token instanceof "WiiListenerToken") {
+		if (token instanceof WiiListenerToken) {
 			var confiorm = false;
 			for (var i = 0; i < this.eventListeners.length; i++) {
 				if (token == this.eventListeners[i].token) {
