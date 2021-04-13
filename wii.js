@@ -419,12 +419,13 @@ var WiiController = function() {
 			total += 1;
 			
 			this.vibrating = true; // Remember current vibration
-			
-			// Send command
-			return this.sendData([0x11, total]);
+
 			
 			// Then send second false command to show no more vibration
 			setTimeout(function() {u.vibrate(false);}, value);
+			
+			// Send command
+			return this.sendData([0x11, total]);
 		} else {
 			console.warn("Argument 1 should be boolean or a duration (total 1 arg required)");
 			return;
