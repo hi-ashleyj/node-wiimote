@@ -12,6 +12,7 @@ var WiiListenerToken = function() {
 
 var WiiController = function() {
 	this.version = JSON.parse(fs.readFileSync(path.join(__dirname, "package.json"))).version;
+	var version = this.version;
 	this.last = {buttons: {}}; // Setup shit I need
 
 	this.bindings = [
@@ -283,7 +284,7 @@ var WiiController = function() {
 				return u.sendData([0x12, 0x00, 0x30]); // Send a message to change the reporting mode to 0x30 (default)
 			} else {
 				console.log("I found a report that I have no idea what to do with");
-				console.log("We are working very hard to support all types of report, so please make sure you have the latest version. Current: " + this.version);
+				console.log("We are working very hard to support all types of report, so please make sure you have the latest version. Current: " + version);
 				console.log("If you have the latest version, keep a note of the following information");
 				console.log(e);
 				console.log("Please send it in as a bug report on git, if there is already data that matches yours just comment on it please!");
