@@ -9,7 +9,7 @@ var WiiListenerToken = function() {
 // 1: 0x01, 2: 0x02, 3: 0x04, 4: 0x08, 5: 0x10, 6: 0x20, 7: 0x40, 8: 0x80
 
 var WiiController = function() {
-	this.version = require("./package.json").version;
+	var version = require("./package.json").version;
 	this.last = {buttons: {}}; // Setup shit I need
 
 	this.bindings = [
