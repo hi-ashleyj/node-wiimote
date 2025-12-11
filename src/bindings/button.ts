@@ -3,7 +3,7 @@ export const button = <T extends string>(key: T) => {
     return ({
         control: key,
         process: (data: number, store: State<number>) => {
-            const s = store();
+            const s = store() ?? 0;
             if (data === s) return []; // no change
 
             store(data);

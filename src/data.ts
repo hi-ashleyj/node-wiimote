@@ -9,6 +9,13 @@ export type Controls = {
     [K in AllControls["control"]]: Extract<AllControls, { control: K }>;
 }
 
+// FLIP AND RETURN
+const controls = new Map<keyof Controls, Control<any>>();
+const lsc = [ ...buttons ];
+for (let r of lsc) {
+    controls.set(r.control, r);
+}
+
 // IMPORT ALL REPORT HANDLERS
 import { reports as x20 } from "./reports/0x20-0x2f.js";
 import { reports as x30 } from "./reports/0x30-0x37.js";
@@ -22,9 +29,9 @@ export type Reports = {
 
 // FLIP AND RETURN
 const reports = new Map<number, Report>();
-const ls = [ ...x20, ...x30, ...x38 ];
-for (let r of ls) {
+const lsr = [ ...x20, ...x30, ...x38 ];
+for (let r of lsr) {
     reports.set(r.type, r);
 }
 
-export { reports };
+export { reports, controls };

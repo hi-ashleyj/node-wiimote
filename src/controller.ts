@@ -1,24 +1,39 @@
 import HID from "node-hid";
 import { Context } from "./context.js";
 import { EventEmitter } from "node:events";
+import { type Reports, type Controls, reports, controls } from "./data.js";
+import { debugData } from "./debug.js";
 
 type Events = {
     "error": [ any ]
-    "action": []
+    "action": [
+        ReturnType<Controls[keyof Controls]["process"]>[number]
+    ]
 }
 
 export class Controller extends EventEmitter<Events> {
 
+    private device?: HID.HIDAsync;
+    private context: Context;
+    private path: string;
+    private controlStates = new Map<keyof Controls, any>();
+
+    connected = false;
+
     vibrating = false;
     lightState = 0;
-    exists = false;
-    private device?: HID.HIDAsync;
-    private path: string;
-    connected = false;
 
     constructor(hidPath: string, context: Context) {
         super();
         this.path = hidPath;
+        this.context = context;
+    }
+
+    private state(key: keyof Controls) {
+        return (function (param?: any) {
+            if (typeof param !== undefined) this.controlStates.set(key, param);
+            return this.controlStates.get(key) ?? null;
+        }).bind(this);
     }
 
     // TODO: Make this actually do something
@@ -28,11 +43,36 @@ export class Controller extends EventEmitter<Events> {
             this.device!.on("error", (err) => {
                 this.emit("error", err);
             })
+            this.controlStates.clear();
             
-            // todo: idk if i need to check the data format here so just hard typing here
+            // todo: idk if i need to check the data format here so just hard typing
             this.device!.on("data", (data: number[]) => {
-
+                if (data.length < 2) return; // this is nothing
+                const reportType = data[0];
+                const reportParser = reports.get(reportType);
                 
+                if (!reportParser) {
+                    console.log("node-wiimote found an unknown report. we are working to improve support, so please make sure you have the latest version.");
+                    console.log("If you'd like to help, please share the following debug information on github using the \"Unknown Report\" issue template.");
+                    console.log("Alternatively, use the Wiimote documentation on Wiibrew to figure out what is going on and submit that, or fix it and submit a pull request.");
+                    console.log("DATA STARTS HERE:");
+                    console.log(`OS ${process.platform} | ARCH ${process.arch} | NODE ${process.version} | PACKAGE ${__MODULE_VERSION__}`);
+                    if (process.versions && "electron" in process.versions && "chrome" in process.versions) console.log(`ELECTRON DETECTED: ${process.versions.electron} | CHROME ${process.versions.chrome}`)
+                    console.log(debugData(data));
+                    console.log("-".repeat(20));
+                }
+                const remaining = data.slice(1);
+
+                const states = reportParser.extract(remaining);
+                const targets = Object.keys(states) as (keyof typeof states)[];
+                const events = targets.map(ctrl => {
+                    return controls.get(ctrl)!.process(states[ctrl], this.state(ctrl));
+                }).flat();
+                
+                events.forEach((it) => {
+                    //@ts-expect-error (trust me bro it matches up)
+                    this.emit("action", it);
+                })
             });
         } catch (e) {
             console.error(e);
@@ -52,9 +92,8 @@ export class Controller extends EventEmitter<Events> {
             this.device.write(data);
             return true;
         } catch (e) {
-            this.exists = false;
-            console.error(e);
-            throw new Error("This client is probably disconnected.");
+            this.connected = false;
+            this.emit("error", e);
         }
     }
 

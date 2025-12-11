@@ -1,6 +1,6 @@
 import type { Controls } from "./data.js";
 
-export type State<T = any> = (state?: T) => T
+export type State<T = any> = (state?: T) => T | null
 
 export type Control<T> = {
     control: string;
