@@ -1,7 +1,8 @@
+import type { Control, State } from "../types.js";
 export const button = <T extends string>(key: T) => {
     return ({
         control: key,
-        process: (data: number, store: Wii.State<number>) => {
+        process: (data: number, store: State<number>) => {
             const s = store();
             if (data === s) return []; // no change
 
@@ -20,7 +21,7 @@ export const button = <T extends string>(key: T) => {
                 }]
             }
         }
-    }) as const satisfies Wii.Control<boolean>;
+    }) as const satisfies Control<boolean>;
 }
 
 export const standard = (data: number[]) => {
@@ -38,3 +39,6 @@ export const standard = (data: number[]) => {
         DPAD_DOWN: (data[0] & 0x04) > 0 ? 1 : 0,
     };
 }
+
+// Re-export Report here for ease of use
+export type { Report } from "../types.js";

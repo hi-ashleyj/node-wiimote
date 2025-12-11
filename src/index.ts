@@ -1,4 +1,5 @@
 import { createContext, type Context } from "./context.js";
+import type { Controls as Ctrls } from "./data.js";
 
 // KEY API
 export const createWii = (): Context => {
@@ -9,4 +10,5 @@ export const createManager = () => {
 
 }
 
-export type Controls = keyof Wii.Controls
+export { createContext, type Context };
+export type Controls = keyof Ctrls
