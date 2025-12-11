@@ -1,0 +1,41 @@
+name: Bug Report
+description: For when the flytrap fails
+labels: [ "bug" ]
+body:
+  - type: input
+    attributes:
+      label: Describe the Bug
+      description: A concise, specific description of what the bug is
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Operating System (Windows / MacOS)
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Node/Electron Version
+      placeholder: Node 22.12.0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Package Version
+      placeholder: "0.2.0"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behaviour
+  - type: textarea
+    attributes:
+      label: Actual Behaviour
+  - type: textarea
+    attributes:
+      label: Reproduction
+      description: Detailed steps needed to reproduce the behaviour, feel free to include a repo here if required.
+  - type: textarea
+    attributes:
+      label: Anything Else?
+      description: Anything else you need to add to this report. If you have an idea for a fix, feel free to add that here.

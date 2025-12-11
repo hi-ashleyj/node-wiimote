@@ -1,0 +1,17 @@
+name: Question
+description: If you have a question about Usage, Docs, etc
+labels: [ "support" ]
+body:
+  - type: checkboxes
+    attributes:
+      label: Before you submit
+      options:
+      - label: I have checked for a duplicate question
+        required: true
+      - label: I have checked the documentation and my question was not answered
+        required: true
+  - type: textarea
+    attributes:
+      label: "Sweet! Ask away"
+    validations:
+      required: true

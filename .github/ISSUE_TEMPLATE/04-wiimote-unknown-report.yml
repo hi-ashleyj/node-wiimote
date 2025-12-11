@@ -1,0 +1,30 @@
+name: Wiimote Unknown Report
+description: Use this template if you have data spat out in an error
+labels: [ "unknown report", "help wanted" ]
+title: Unknown Report
+assignees:
+  - hi-ashleyj
+body:
+  - type: textarea
+    attributes:
+      label: Paste the contents logged by the Package
+      placeholder: "[ Paste Here ]"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Were you trying to do something, and if so what?
+      description: Please be specific and concise
+  - type: textarea
+    attributes:
+      label: Anything else?
+  - type: checkboxes
+    attributes:
+      label: Before you submit
+      options:
+        - label: "I'm running the latest stable version"
+          required: true
+        - label: "I've checked for matching data"
+          required: true
+        - label: "I understand even if there's not an exact math, there could be a functional match, and therefore this issue may be marked as duplicate and closed. This report will likely still be useful in debugging that issue"
+          required: true
