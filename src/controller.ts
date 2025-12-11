@@ -1,75 +1,55 @@
 import HID from "node-hid";
-import { ButtonEvents } from "./bindings/+handlers.js";
-import { extractState } from "./bindings.js";
+import { Context } from "./context.js";
+import { EventEmitter } from "node:events";
 
-type SystemEvents = {
-    disconnect: () => any
+type Events = {
+    "error": [ any ]
+    "action": []
 }
 
-type SystemEventItem<K extends keyof SystemEvents> = {
-    type: K,
-    handler: SystemEvents[K]
-}
-
-type BindingEventActions = {
-    [K in ButtonEvents]: "pressed" | "released"
-}
-
-type BindingEventHandlers = {
-    [K in ButtonEvents]: ({}: { type: K, action: BindingEventActions[K] }) => any | void;
-} & {
-    "button_*": ({}: { type: ButtonEvents, action: BindingEventActions[ButtonEvents]}) => any | void;
-}
-
-type BindingEventItem<K extends keyof BindingEventHandlers> = {
-    type: K,
-    handler: BindingEventHandlers[K],
-    action: "*" | Parameters<BindingEventHandlers[keyof BindingEventHandlers]>[0]["action"]
-}
-
-export class Controller {
+export class Controller extends EventEmitter<Events> {
 
     vibrating = false;
     lightState = 0;
     exists = false;
-    onListeners = new Set<BindingEventItem<keyof BindingEventHandlers>>();
-    systemListeners = new Set<SystemEventItem<keyof SystemEvents>>();
-    HID: HID.HID;
+    private device?: HID.HIDAsync;
+    private path: string;
+    connected = false;
 
-    constructor(hidPath: string) {
-        this.HID = new HID.HID(hidPath);
+    constructor(hidPath: string, context: Context) {
+        super();
+        this.path = hidPath;
+    }
 
+    // TODO: Make this actually do something
+    async connect() {
         try {
-            this.HID.on("data", function(e) {
-                this.exists = true;
-                this.processIncoming(e);
-            }.bind(this));
+            this.device = await HID.HIDAsync.open(this.path);
+            this.device!.on("error", (err) => {
+                this.emit("error", err);
+            })
+            
+            // todo: idk if i need to check the data format here so just hard typing here
+            this.device!.on("data", (data: number[]) => {
+
+                
+            });
         } catch (e) {
             console.error(e);
             throw new Error("Could not start Wiimote");
         }
-        this.exists = true;
-        this.HID.on("error", () => {
-            console.log("The Wii controller had an error")
-        });
     }
 
-    onSystem<T extends keyof SystemEvents>(type: T, handler: SystemEvents[T]): () => any {
-        const combined = {
-            type: type,
-            handler: handler,
-        }
-        this.systemListeners.add(combined);
-        return (function () {
-            this.systemListeners.delete(combined)
-        }).bind(this);
-
+    // TODO: Make this actually do something
+    async disconnect() {
+        this.device.close();
+        this.device = undefined;
     }
 
     sendData(data: number[]) {
-        if (!this.exists) return false;
+        if (!this.device) return false;
         try {
-            this.HID.write(data);
+            this.device.write(data);
             return true;
         } catch (e) {
             this.exists = false;
@@ -86,8 +66,6 @@ export class Controller {
                 break;
             }
         }
-        const state = extractState(data);
-
 
     }
 
@@ -124,18 +102,6 @@ export class Controller {
             this.vibrate(false);
         }, ms);
         this.vibrate(true);
-    }
-
-    on<T extends keyof BindingEventHandlers>(type: T, action: BindingEventItem<T>["action"], handler: BindingEventHandlers[T]): () => any | void {
-        const combined = {
-            type,
-            action,
-            handler,
-        };
-        this.onListeners.add(combined);
-        return () => {
-            this.onListeners.delete(combined)
-        }
     }
 
 }

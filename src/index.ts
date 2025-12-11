@@ -1,25 +1,12 @@
-// import HID
+import { createContext, type Context } from "./context.js";
 
-import HID from "node-hid";
-import { bindings } from "./bindings.js";
-
-export const detectWiimotes = () => {
-    const devices = HID.devices();
-    devices.forEach((d) => {
-        if (typeof d === "object" && d.product !== undefined) {
-            if (d.product.toLowerCase().indexOf("rvl-cnt") !== -1) {
-                // this is a wiimote!
-            }
-        }
-    })
+// KEY API
+export const createWii = (): Context => {
+    return createContext();
 }
 
-export { getControllers } from "./manager.js";
-export const listEvents = () => {
-    const out = {};
-    for (const i in bindings) {
-        out[i] = bindings[i].name;
-    }
+export const createManager = () => {
+
 }
 
-export { type SupportedEvents, type SupportedReports } from "./bindings/+handlers.js";
+export type Controls = keyof Wii.Controls

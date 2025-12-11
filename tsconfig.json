@@ -5,7 +5,7 @@
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "declaration": true,
-        "target": "es2020"
-    },
-    "exclude": [ "node_modules" ]
+        "target": "es2020",
+        "module": "node16",
+    }
 }
