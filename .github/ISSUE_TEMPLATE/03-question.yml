@@ -4,7 +4,7 @@ labels: [ "support" ]
 body:
   - type: checkboxes
     attributes:
-      label: Before you submit:
+      label: Before you submit
       options:
       - label: I have checked for a duplicate question
         required: true
@@ -12,6 +12,6 @@ body:
         required: true
   - type: textarea
     attributes:
-      label: "Sweet! Ask away:"
+      label: "Sweet! Ask away"
     validations:
       required: true
