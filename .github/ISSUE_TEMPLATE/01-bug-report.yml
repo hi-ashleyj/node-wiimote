@@ -1,6 +1,6 @@
 name: Bug Report
 description: For when the flytrap fails
-labels: [ "Bug" ]
+labels: [ "bug" ]
 body:
   - type: input
     attributes:
