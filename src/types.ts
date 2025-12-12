@@ -15,6 +15,19 @@ export type WiimoteEvent<T> = {
 
 export type Report = {
     type: number,
-    extract: (data: number[]) => Partial<{ [X in keyof Controls]: Parameters<Controls[X]["process"]>[0] }>
+    extract: (data: number[], status: ControllerStatus, update: (partial: Partial<ControllerStatus>) => void | any) => Partial<{ [X in keyof Controls]: Parameters<Controls[X]["process"]>[0] }>
     process: () => number[] | null;
+}
+
+export type ControllerWritable = {
+    rumble: boolean,
+    lights: number,
+    speaker_enabled: boolean,
+    speaker_muted: boolean,
+    ir_camera_enabled: boolean,
+}
+
+export type ControllerStatus = ControllerWritable & {
+    battery_level: number,
+    extension_connected: boolean,
 }

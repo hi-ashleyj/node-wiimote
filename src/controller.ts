@@ -1,11 +1,17 @@
 import HID from "node-hid";
-import { Context } from "./context.js";
 import { EventEmitter } from "node:events";
-import { type Reports, type Controls, reports, controls } from "./data.js";
+import { type Controls, reports, controls } from "./data.js";
 import { debugData } from "./debug.js";
+import type { ControllerStatus, ControllerWritable } from "./types.js"; 
+
+type WiimoteControllerError = {
+    code: "write/fail" | "connect/fail"
+    message: string,
+    cause: any
+}
 
 type Events = {
-    "error": [ any ]
+    "error": [ WiimoteControllerError ]
     "action": [
         ReturnType<Controls[keyof Controls]["process"]>[number]
     ]
@@ -14,19 +20,22 @@ type Events = {
 export class Controller extends EventEmitter<Events> {
 
     private device?: HID.HIDAsync;
-    private context: Context;
-    private path: string;
+    readonly path: string;
     private controlStates = new Map<keyof Controls, any>();
+    private status: ControllerStatus = {
+        rumble: false,
+        lights: 0,
+        speaker_enabled: false,
+        speaker_muted: true,
+        ir_camera_enabled: false,
+        battery_level: 0,
+        extension_connected: false
+    }
 
     connected = false;
-
-    vibrating = false;
-    lightState = 0;
-
-    constructor(hidPath: string, context: Context) {
+    constructor(hidPath: string) {
         super();
         this.path = hidPath;
-        this.context = context;
     }
 
     private state(key: keyof Controls) {
@@ -36,17 +45,16 @@ export class Controller extends EventEmitter<Events> {
         }).bind(this);
     }
 
-    // TODO: Make this actually do something
     async connect() {
         try {
             this.device = await HID.HIDAsync.open(this.path);
             this.device!.on("error", (err) => {
                 this.emit("error", err);
             })
-            this.controlStates.clear();
             
             // todo: idk if i need to check the data format here so just hard typing
             this.device!.on("data", (data: number[]) => {
+                this.connected = true;
                 if (data.length < 2) return; // this is nothing
                 const reportType = data[0];
                 const reportParser = reports.get(reportType);
@@ -63,7 +71,7 @@ export class Controller extends EventEmitter<Events> {
                 }
                 const remaining = data.slice(1);
 
-                const states = reportParser.extract(remaining);
+                const states = reportParser.extract(remaining, this.status, this.updateStatus);
                 const targets = Object.keys(states) as (keyof typeof states)[];
                 const events = targets.map(ctrl => {
                     return controls.get(ctrl)!.process(states[ctrl], this.state(ctrl));
@@ -74,38 +82,49 @@ export class Controller extends EventEmitter<Events> {
                     this.emit("action", it);
                 })
             });
+            this.controlStates.clear();
+            this.connected = true;
+            this.sendData([ 0x15, 0x00 ]);
         } catch (e) {
-            console.error(e);
-            throw new Error("Could not start Wiimote");
+            this.emit("error", {
+                code: "connect/fail",
+                message: "Could not start Wiimote",
+                cause: e
+            })
         }
     }
 
-    // TODO: Make this actually do something
     async disconnect() {
+        this.connected = false;
         this.device.close();
         this.device = undefined;
     }
 
-    sendData(data: number[]) {
+    private sendData(data: number[]) {
         if (!this.device) return false;
         try {
             this.device.write(data);
             return true;
         } catch (e) {
             this.connected = false;
-            this.emit("error", e);
+            this.emit("error", {
+                code: "write/fail",
+                message: "Failed to write data",
+                cause: e
+            });
         }
     }
 
-    processIncoming(data: number[]) {
-        // check for special reports
-        switch (data[0]) {
-            case 0x20: { // We just received a status report. We need to handle this, then change reporting mode back.
-                this.sendData([0x12, 0x00, 0x30]);
-                break;
-            }
-        }
+    getStatus() {
+        return this.status;
+    }
 
+    setStatus(stat: Partial<ControllerWritable>) {
+        
+    }
+
+    private updateStatus(stat: Partial<ControllerStatus>) {
+        this.status = Object.assign({}, this.status, stat);
     }
 
     setLight(light: 1 | 2 | 3 | 4, to: boolean) {
@@ -133,14 +152,6 @@ export class Controller extends EventEmitter<Events> {
         this.vibrating = state; // remember current vibration;
         const total = this.lightState + (state ? 1 : 0); // vibration and lights are in the same packet
         return this.sendData([0x11, total]);
-    }
-
-    vibrateFor(ms: number) {
-        if (ms < 10) throw new Error("Not possible to vibrate for less than 10ms");
-        setTimeout(() => {
-            this.vibrate(false);
-        }, ms);
-        this.vibrate(true);
     }
 
 }

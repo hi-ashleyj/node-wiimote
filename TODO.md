@@ -1,3 +1,27 @@
+Files:  
+Note this is for now just to get parity not completeness
+- [x] **/bindings** 
+  - [x] **button.ts**
+- [x] **/controls**
+  - [x] **wiimote_buttons.ts**
+- [ ] **/modes**
+  - [ ] **manager.ts**
+  - [ ] **wii.ts**
+- [x] **/reports**
+  - [x] **0x10-0x1f.ts**
+  - [x] **0x20-0x2f.ts**
+  - [x] **0x30-0x37.ts**
+  - [x] **0x38-0x3f.ts**
+- [x] **context.ts** *pretty sure this is all i need, the manager and wii modes should take over here*
+- [ ] **controller.ts**
+- [x] **data.ts**
+- [x] **debug.ts**
+- [ ] **index.ts**
+- [ ] **types.ts**
+
+
+
+
 TODO FOR FUTURE VERSIONS:
 Planned for 0.3.0: 'The Listening Update'
 	Allow passing in button_*/button_all for all button events

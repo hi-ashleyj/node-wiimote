@@ -44,7 +44,7 @@ class WiimoteContext extends EventEmitter<Events> {
         }
         for (const next of connected) {
             // everything left in connected is new, fire connect
-            const controller = new Controller(next, this);
+            const controller = new Controller(next);
             this.knownWiimotes.set(next, controller);
         }
 
