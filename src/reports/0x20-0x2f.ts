@@ -1,5 +1,6 @@
 import { Report } from "../types.js";
 import { standard } from "../bindings/button.js";
+import { buildReport0x12 } from "./0x10-0x1f.js";
 
 /*
  * LIST OF REPORTS:
@@ -40,7 +41,11 @@ const report0x20 = {
 
         return { ...standard(data) }; // buttons are technically returned here, might as well
      },
-    process: () => null 
+    process: (status, updateStatus) => { // i must respond with a 0x12 reporting mode call.
+        const [ report, next ] = buildReport0x12({ mode: status.monitor_mode, continuous: status.monitor_continuous }, status);
+        updateStatus(next);
+        return report;
+    } 
 } as const satisfies Report;
 
 

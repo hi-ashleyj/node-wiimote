@@ -3,6 +3,7 @@ import { EventEmitter } from "node:events";
 import { type Controls, reports, controls } from "./data.js";
 import { debugData } from "./debug.js";
 import type { ControllerStatus, ControllerWritable } from "./types.js"; 
+import { buildReport0x10, buildReport0x11, buildReport0x12 } from "./reports/0x10-0x1f.js";
 
 type WiimoteControllerError = {
     code: "write/fail" | "connect/fail"
@@ -29,7 +30,9 @@ export class Controller extends EventEmitter<Events> {
         speaker_muted: true,
         ir_camera_enabled: false,
         battery_level: 0,
-        extension_connected: false
+        extension_connected: false,
+        monitor_continuous: false,
+        monitor_mode: 0x30
     }
 
     connected = false;
@@ -72,6 +75,8 @@ export class Controller extends EventEmitter<Events> {
                 const remaining = data.slice(1);
 
                 const states = reportParser.extract(remaining, this.status, this.updateStatus);
+                const after = reportParser.process(this.status, this.updateStatus);
+                if (after !== null) this.sendData(after);
                 const targets = Object.keys(states) as (keyof typeof states)[];
                 const events = targets.map(ctrl => {
                     return controls.get(ctrl)!.process(states[ctrl], this.state(ctrl));
@@ -116,42 +121,35 @@ export class Controller extends EventEmitter<Events> {
     }
 
     getStatus() {
-        return this.status;
+        return Object.assign({}, this.status);
     }
 
     setStatus(stat: Partial<ControllerWritable>) {
-        
+        let update: Partial<ControllerStatus> = {};
+        const state = () => Object.assign({}, this.status, update);
+        if ("rumble" in stat && typeof stat.rumble === "boolean") {
+            const [ report, states ] = buildReport0x10({ rumble: stat.rumble });
+            this.sendData(report);
+            Object.assign(update, states);
+        }
+        if ("lights" in stat && typeof stat.lights === "number") {
+            const [ report, states ] = buildReport0x11({ lights: stat.lights }, state());
+            this.sendData(report);
+            Object.assign(update, states);
+        }
+        this.updateStatus(update);
+    }
+
+    setMonitorMode(mode: number, continuous: false) {
+        // continuous is forced false cause no need to hold onto it
+        if (this.status.monitor_mode === mode && this.status.monitor_continuous === continuous) return;
+        const [ report, states ] = buildReport0x12({ mode, continuous }, this.getStatus());
+        this.sendData(report);
+        this.updateStatus(states);
     }
 
     private updateStatus(stat: Partial<ControllerStatus>) {
         this.status = Object.assign({}, this.status, stat);
-    }
-
-    setLight(light: 1 | 2 | 3 | 4, to: boolean) {
-        const bitwise = Math.pow(2, light - 1) * 16;
-        const isOn = (this.lightState & bitwise) > 0;
-        if (isOn === to) return true; // no change, do nothing.
-        if (isOn) { // to must be false
-            this.lightState -= bitwise;
-        } else { // must not be on and to must be true
-            this.lightState += bitwise;
-        }
-        return this.sendData([0x11, this.lightState + (this.vibrating ? 1 : 0)]); // i love ternary operators smile
-    }
-
-    setLights(lx1: boolean, lx2: boolean, lx3: boolean, lx4: boolean) {
-        let total = lx1 ? 16 : 0;
-        if (lx2) total += 32;
-        if (lx3) total += 64;
-        if (lx4) total += 128;
-        this.lightState = total;
-        return this.sendData([0x11, this.lightState + (this.vibrating ? 1 : 0)]);// i love ternary operators smile
-    }
-
-    vibrate(state: boolean) {
-        this.vibrating = state; // remember current vibration;
-        const total = this.lightState + (state ? 1 : 0); // vibration and lights are in the same packet
-        return this.sendData([0x11, total]);
     }
 
 }

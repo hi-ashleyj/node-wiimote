@@ -45,7 +45,7 @@ export const buildReport0x12 = ((option: { mode: number, continuous: boolean }, 
     // including rumble bit just in case
     const TT = (option.continuous ? 0x04 : 0) | (status.rumble ? 0x01 : 0);
     const report = [ 0x12, TT, option.mode ];
-    return [ report, {} ]
+    return [ report, { monitor_continuous: option.continuous, monitor_mode: option.mode } ]
 
 }) satisfies Signature
 
