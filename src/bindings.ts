@@ -52,7 +52,8 @@ export const extractState = (report: number[]): Partial<State> => {
 
     if (!supportedReports.some(v => v === reportCode)) {
         console.log("I found a report that I have no idea what to do with");
-        console.log("We are working very hard to support all types of report, so please make sure you have the latest version. Current: " + __MODULE_VERSION__);
+        // removed __MODULE_VERSION__ as it triggered errors that weren't catchable, instead it now just uses the package version
+        console.log("We are working very hard to support all types of report, so please make sure you have the latest version. Current: " + require("./package.json").version);
         console.log("If you have the latest version, keep a note of the following information");
         console.log("Please send it in as a bug report on git, if there is already data that matches yours just comment on it please!");
         console.log("Alternatively, use the Wiimote documentation on Wiibrew to figure out what is going on and submit that, or fix it and submit a pull request.");
