@@ -33,3 +33,7 @@ export type ControllerStatus = ControllerWritable & {
     monitor_mode: number,
     monitor_continuous: boolean,
 }
+
+export type EventOf<T extends keyof Controls> = ReturnType<Extract<Controls[keyof Controls], { control: T }>["process"]>[number];
+export type ActionOf<T extends keyof Controls> = EventOf<T>["action"];
+export type EventActionOf<T extends keyof Controls, A extends EventOf<T>["action"]> = Extract<EventOf<T>, { action: A }>;

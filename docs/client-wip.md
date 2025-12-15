@@ -14,7 +14,6 @@ Basic easy to use Wiimote library for node.js.
 - [Feedback]
   - [Haptics]
   - [Lights]
-  - [List Events]
 
 ## Get Started
 ### Installation
@@ -31,6 +30,9 @@ export const wii = createWii();
 
 // "manager" mode - wiimotes are handled by client code
 export const wii = createManager();
+
+// "raw" mode - should be used sparingly - directly passes through underlying api for advanced usage
+export const wii = createRawWiimoteContext();
 ```
 ## Events
 <h3 id="hd2_1">2.1 Behaviour</h3>
@@ -57,17 +59,17 @@ Remove with <span class="code-inline">type: "all", action: "pressed"</span> will
 
 ### Buttons
 #### Types
-button_a  
-button_b  
-button_1  
-button_2  
-button_plus  
-button_minus  
-button_left  
-button_right  
-button_up  
-button_down  
-button_home  
+A  
+B  
+1  
+2  
+MINUS  
+PLUS  
+HOME  
+DPAD_LEFT  
+DPAD_RIGHT  
+DPAD_UP  
+DPAD_DOWN  
 
 #### Actions
 **pressed**  
@@ -75,32 +77,3 @@ Triggered when a button is pressed down.
   
 **released**
 Triggered when a button is released.  
-  
-## Feedback
-### Haptics/Rumble
-```ts
-wiimote.
-```
-<h3 id="hd3_1">3.1 Haptics/Rumble/Vibration</h3>
-<div class="code">
-    wii.<span class="dblue">vibrate</span>(<span class="lblue">&lt;(true/false)|duration&gt;</span>);
-</div>
-<br />
-Expects and does as the following:</br>
-<span class="code-inline">true/false (boolean)</span>: Enables/Disables vibration or rumble feature</br>
-<span class="code-inline">duration (number, milliseconds)</span>: Enables vibration for a set length of time</br>
-<h3 id="hd3_2">3.2 Lights</h3>
-<div class="code">
-    wii.<span class="dblue">setLights</span>(<span class="lblue">1</span>, <span class="lblue">2</span>, <span class="lblue">3</span>, <span class="lblue">4</span>);
-</div>
-<br />
-Takes 4 boolean values and turns on the LEDs on the bottom of the Wiimote (left to right)
-<br />
-<h3 id="hd3_3">3.2 List Events</h3>
-<div class="code">
-    wii.<span class="dblue">listEvents</span>(<span class="lblue">toConsole*</span>);
-</div>
-<br />
-Returns an object with all events in <span class="code-inline">eventType: prettyName</span> format.<br />
-If toConsole is true, prints the list to the console instead.<br />
-If toConsole is not present, it is assumed to be false.
