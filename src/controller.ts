@@ -1,141 +1,155 @@
 import HID from "node-hid";
-import { ButtonEvents } from "./bindings/+handlers.js";
-import { extractState } from "./bindings.js";
+import { EventEmitter } from "node:events";
+import { type Controls, reports, controls } from "./data.js";
+import { debugData } from "./debug.js";
+import type { ControllerStatus, ControllerWritable } from "./types.js"; 
+import { buildReport0x10, buildReport0x11, buildReport0x12 } from "./reports/0x10-0x1f.js";
 
-type SystemEvents = {
-    disconnect: () => any
+type WiimoteControllerError = {
+    code: "write/fail" | "connect/fail"
+    message: string,
+    cause: any
 }
 
-type SystemEventItem<K extends keyof SystemEvents> = {
-    type: K,
-    handler: SystemEvents[K]
+type Events = {
+    "error": [ WiimoteControllerError ]
+    "action": [
+        ReturnType<Controls[keyof Controls]["process"]>[number]
+    ]
 }
 
-type BindingEventActions = {
-    [K in ButtonEvents]: "pressed" | "released"
-}
+export class Controller extends EventEmitter<Events> {
 
-type BindingEventHandlers = {
-    [K in ButtonEvents]: ({}: { type: K, action: BindingEventActions[K] }) => any | void;
-} & {
-    "button_*": ({}: { type: ButtonEvents, action: BindingEventActions[ButtonEvents]}) => any | void;
-}
+    private device?: HID.HIDAsync;
+    readonly path: string;
+    private controlStates = new Map<keyof Controls, any>();
+    private status: ControllerStatus = {
+        rumble: false,
+        lights: 0,
+        speaker_enabled: false,
+        speaker_muted: true,
+        ir_camera_enabled: false,
+        battery_level: 0,
+        extension_connected: false,
+        monitor_continuous: false,
+        monitor_mode: 0x30
+    }
 
-type BindingEventItem<K extends keyof BindingEventHandlers> = {
-    type: K,
-    handler: BindingEventHandlers[K],
-    action: "*" | Parameters<BindingEventHandlers[keyof BindingEventHandlers]>[0]["action"]
-}
-
-export class Controller {
-
-    vibrating = false;
-    lightState = 0;
-    exists = false;
-    onListeners = new Set<BindingEventItem<keyof BindingEventHandlers>>();
-    systemListeners = new Set<SystemEventItem<keyof SystemEvents>>();
-    HID: HID.HID;
-
+    connected = false;
     constructor(hidPath: string) {
-        this.HID = new HID.HID(hidPath);
-
-        try {
-            this.HID.on("data", function(e) {
-                this.exists = true;
-                this.processIncoming(e);
-            }.bind(this));
-        } catch (e) {
-            console.error(e);
-            throw new Error("Could not start Wiimote");
-        }
-        this.exists = true;
-        this.HID.on("error", () => {
-            console.log("The Wii controller had an error")
-        });
+        super();
+        this.path = hidPath;
     }
 
-    onSystem<T extends keyof SystemEvents>(type: T, handler: SystemEvents[T]): () => any {
-        const combined = {
-            type: type,
-            handler: handler,
-        }
-        this.systemListeners.add(combined);
-        return (function () {
-            this.systemListeners.delete(combined)
+    private state(key: keyof Controls) {
+        return (function (param?: any) {
+            if (typeof param !== undefined) this.controlStates.set(key, param);
+            return this.controlStates.get(key) ?? null;
         }).bind(this);
-
     }
 
-    sendData(data: number[]) {
-        if (!this.exists) return false;
+    async connect() {
         try {
-            this.HID.write(data);
+            this.device = await HID.HIDAsync.open(this.path);
+            this.device!.on("error", (err) => {
+                this.emit("error", err);
+            })
+            
+            // todo: idk if i need to check the data format here so just hard typing
+            this.device!.on("data", (data: number[]) => {
+                this.connected = true;
+                if (data.length < 2) return; // this is nothing
+                const reportType = data[0];
+                const reportParser = reports.get(reportType);
+                
+                if (!reportParser) {
+                    console.log("node-wiimote found an unknown report. we are working to improve support, so please make sure you have the latest version.");
+                    console.log("If you'd like to help, please share the following debug information on github using the \"Unknown Report\" issue template.");
+                    console.log("Alternatively, use the Wiimote documentation on Wiibrew to figure out what is going on and submit that, or fix it and submit a pull request.");
+                    console.log("DATA STARTS HERE:");
+                    console.log(`OS ${process.platform} | ARCH ${process.arch} | NODE ${process.version} | PACKAGE ${__MODULE_VERSION__}`);
+                    if (process.versions && "electron" in process.versions && "chrome" in process.versions) console.log(`ELECTRON DETECTED: ${process.versions.electron} | CHROME ${process.versions.chrome}`)
+                    console.log(debugData(data));
+                    console.log("-".repeat(20));
+                }
+                const remaining = data.slice(1);
+
+                const states = reportParser.extract(remaining, this.status, this.updateStatus);
+                const after = reportParser.process(this.status, this.updateStatus);
+                if (after !== null) this.sendData(after);
+                const targets = Object.keys(states) as (keyof typeof states)[];
+                const events = targets.map(ctrl => {
+                    return controls.get(ctrl)!.process(states[ctrl], this.state(ctrl));
+                }).flat();
+                
+                events.forEach((it) => {
+                    //@ts-expect-error (trust me bro it matches up)
+                    this.emit("action", it);
+                })
+            });
+            this.controlStates.clear();
+            this.connected = true;
+            this.sendData([ 0x15, 0x00 ]);
+        } catch (e) {
+            this.emit("error", {
+                code: "connect/fail",
+                message: "Could not start Wiimote",
+                cause: e
+            })
+        }
+    }
+
+    async disconnect() {
+        this.connected = false;
+        this.device.close();
+        this.device = undefined;
+    }
+
+    private sendData(data: number[]) {
+        if (!this.device) return false;
+        try {
+            this.device.write(data);
             return true;
         } catch (e) {
-            this.exists = false;
-            console.error(e);
-            throw new Error("This client is probably disconnected.");
+            this.connected = false;
+            this.emit("error", {
+                code: "write/fail",
+                message: "Failed to write data",
+                cause: e
+            });
         }
     }
 
-    processIncoming(data: number[]) {
-        // check for special reports
-        switch (data[0]) {
-            case 0x20: { // We just received a status report. We need to handle this, then change reporting mode back.
-                this.sendData([0x12, 0x00, 0x30]);
-                break;
-            }
+    getStatus() {
+        return Object.assign({}, this.status);
+    }
+
+    setStatus(stat: Partial<ControllerWritable>) {
+        let update: Partial<ControllerStatus> = {};
+        const state = () => Object.assign({}, this.status, update);
+        if ("rumble" in stat && typeof stat.rumble === "boolean") {
+            const [ report, states ] = buildReport0x10({ rumble: stat.rumble });
+            this.sendData(report);
+            Object.assign(update, states);
         }
-        const state = extractState(data);
-
-
-    }
-
-    setLight(light: 1 | 2 | 3 | 4, to: boolean) {
-        const bitwise = Math.pow(2, light - 1) * 16;
-        const isOn = (this.lightState & bitwise) > 0;
-        if (isOn === to) return true; // no change, do nothing.
-        if (isOn) { // to must be false
-            this.lightState -= bitwise;
-        } else { // must not be on and to must be true
-            this.lightState += bitwise;
+        if ("lights" in stat && typeof stat.lights === "number") {
+            const [ report, states ] = buildReport0x11({ lights: stat.lights }, state());
+            this.sendData(report);
+            Object.assign(update, states);
         }
-        return this.sendData([0x11, this.lightState + (this.vibrating ? 1 : 0)]); // i love ternary operators smile
+        this.updateStatus(update);
     }
 
-    setLights(lx1: boolean, lx2: boolean, lx3: boolean, lx4: boolean) {
-        let total = lx1 ? 16 : 0;
-        if (lx2) total += 32;
-        if (lx3) total += 64;
-        if (lx4) total += 128;
-        this.lightState = total;
-        return this.sendData([0x11, this.lightState + (this.vibrating ? 1 : 0)]);// i love ternary operators smile
+    setMonitorMode(mode: number, continuous: false) {
+        // continuous is forced false cause no need to hold onto it
+        if (this.status.monitor_mode === mode && this.status.monitor_continuous === continuous) return;
+        const [ report, states ] = buildReport0x12({ mode, continuous }, this.getStatus());
+        this.sendData(report);
+        this.updateStatus(states);
     }
 
-    vibrate(state: boolean) {
-        this.vibrating = state; // remember current vibration;
-        const total = this.lightState + (state ? 1 : 0); // vibration and lights are in the same packet
-        return this.sendData([0x11, total]);
-    }
-
-    vibrateFor(ms: number) {
-        if (ms < 10) throw new Error("Not possible to vibrate for less than 10ms");
-        setTimeout(() => {
-            this.vibrate(false);
-        }, ms);
-        this.vibrate(true);
-    }
-
-    on<T extends keyof BindingEventHandlers>(type: T, action: BindingEventItem<T>["action"], handler: BindingEventHandlers[T]): () => any | void {
-        const combined = {
-            type,
-            action,
-            handler,
-        };
-        this.onListeners.add(combined);
-        return () => {
-            this.onListeners.delete(combined)
-        }
+    private updateStatus(stat: Partial<ControllerStatus>) {
+        this.status = Object.assign({}, this.status, stat);
     }
 
 }

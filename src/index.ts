@@ -1,25 +1,33 @@
-// import HID
+import { createContext, type Context as WiimoteRawContext } from "./context.js";
+import type { Controls as Ctrls } from "./data.js";
 
-import HID from "node-hid";
-import { bindings } from "./bindings.js";
-
-export const detectWiimotes = () => {
-    const devices = HID.devices();
-    devices.forEach((d) => {
-        if (typeof d === "object" && d.product !== undefined) {
-            if (d.product.toLowerCase().indexOf("rvl-cnt") !== -1) {
-                // this is a wiimote!
-            }
-        }
-    })
+// KEY API
+export const createWii = (): WiimoteRawContext => {
+    if ("__wiimote_context_usage_type__" in globalThis && globalThis.__wiimote_context_usage_type__ !== "wii") throw new Error("Do not use multiple context types in a project");
+    if ("__wiimote_context_user__" in globalThis) return globalThis.__wiimote_context_user__;
+    const ctx = createContext();
+    globalThis.__wiimote_context_usage_type__ = "wii";
+    globalThis.__wiimote_context_user__ = ctx;
+    return ctx;
 }
 
-export { getControllers } from "./manager.js";
-export const listEvents = () => {
-    const out = {};
-    for (const i in bindings) {
-        out[i] = bindings[i].name;
-    }
+export const createManager = () => {
+    if ("__wiimote_context_usage_type__" in globalThis && globalThis.__wiimote_context_usage_type__ !== "manager") throw new Error("Do not use multiple context types in a project");
+    if ("__wiimote_context_user__" in globalThis) return globalThis.__wiimote_context_user__;
+    const ctx = createContext();
+    globalThis.__wiimote_context_usage_type__ = "manager";
+    globalThis.__wiimote_context_user__ = ctx;
+    return ctx;
 }
 
-export { type SupportedEvents, type SupportedReports } from "./bindings/+handlers.js";
+export const createRawWiimoteContext = (): WiimoteRawContext => {
+    if ("__wiimote_context_usage_type__" in globalThis && globalThis.__wiimote_context_usage_type__ !== "raw") throw new Error("Do not use multiple context types in a project");
+    if ("__wiimote_context_user__" in globalThis) return globalThis.__wiimote_context_user__;
+    const ctx = createContext();
+    globalThis.__wiimote_context_usage_type__ = "raw";
+    globalThis.__wiimote_context_user__ = ctx;
+    return ctx;
+}
+
+export { type WiimoteRawContext };
+export type Controls = keyof Ctrls
